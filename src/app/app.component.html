@@ -1,10 +1,14 @@
 <app-toolbar caption="Colors Quiz" icon="palette">
 </app-toolbar>
 <div class="main">
+  @if (!store.isDone()) {
     <app-question-presenter/>
     <app-progress
       [value]="store.currentQuestionIndex()"
       [max]="store.questionCount()"
     />
+    <p> Score: {{ store.correctCount() }} </p>
+  } @else {
     <app-done/>
+  }
 </div>

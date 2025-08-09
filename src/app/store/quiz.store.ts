@@ -11,12 +11,23 @@ export const QuizStore = signalStore(
     const isDone = computed(() => answers().length === questions().length);
     const currentQuestion = computed(() => questions()[currentQuestionIndex()]);
     const questionCount = computed(() => questions().length);
+    const correctCount = computed(() => {
+      let correctAnswers = 0;
+      answers().forEach((answer, idx) => {
+        if( answer === questions()[idx].correctIndex) {
+          correctAnswers++;
+        }
+      });
+
+      return correctAnswers;
+    });
 
     return {
       currentQuestionIndex,
       isDone,
       currentQuestion,
-      questionCount
+      questionCount,
+      correctCount
     }
   }),
   withMethods(store => ({
