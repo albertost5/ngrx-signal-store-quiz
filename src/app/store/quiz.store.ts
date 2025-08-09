@@ -1,7 +1,8 @@
-import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
+import {getState, patchState, signalStore, withComputed, withHooks, withMethods, withState} from '@ngrx/signals';
 import {initialState} from './quiz.slice';
-import {computed} from '@angular/core';
+import {computed, effect} from '@angular/core';
 import {addAnswerUpdater, resetQuizUpdater} from './quiz.updaters';
+import {getCorrectCount} from './quiz.helper';
 
 export const QuizStore = signalStore(
   { providedIn: 'root' },
@@ -11,16 +12,7 @@ export const QuizStore = signalStore(
     const isDone = computed(() => answers().length === questions().length);
     const currentQuestion = computed(() => questions()[currentQuestionIndex()]);
     const questionCount = computed(() => questions().length);
-    const correctCount = computed(() => {
-      let correctAnswers = 0;
-      answers().forEach((answer, idx) => {
-        if( answer === questions()[idx].correctIndex) {
-          correctAnswers++;
-        }
-      });
-
-      return correctAnswers;
-    });
+    const correctCount = computed(() => getCorrectCount(questions(), answers()));
 
     return {
       currentQuestionIndex,
@@ -33,5 +25,17 @@ export const QuizStore = signalStore(
   withMethods(store => ({
     addAnswer: (index: number) => patchState(store, addAnswerUpdater(index)),
     resetQuiz: () => patchState(store, resetQuizUpdater())
-  }))
+  })),
+  withHooks({
+    onInit(store) {
+      if (localStorage.getItem('quiz')) {
+        patchState(store, { ...JSON.parse(localStorage.getItem('quiz')!) })
+      }
+      // The effect is re-executed on every state change.
+      effect(() => {
+        const state = getState(store);
+        localStorage.setItem('quiz', JSON.stringify(state));
+      })
+    }
+  })
 );
